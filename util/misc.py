@@ -15,8 +15,8 @@ import torch.distributed as dist
 from torch import Tensor
 import functools
 
-
 _LOCAL_PROCESS_GROUP = None
+
 
 @functools.lru_cache()
 def _get_global_gloo_group():
@@ -33,7 +33,8 @@ def _get_global_gloo_group():
 
 # needed due to empty tensor bug in pytorch and torchvision 0.5
 import torchvision
-if float(torchvision.__version__[:3]) < 0.7:
+
+if float(torchvision.__version__[:3]) < 0.7 and torchvision.__version__ != '0.10.0':
     from torchvision.ops import _new_empty_tensor
     from torchvision.ops.misc import _output_size
 
@@ -99,6 +100,7 @@ class SmoothedValue(object):
             max=self.max,
             value=self.value)
 
+
 # copy-paste from mdetr: https://github.com/ashkamath/mdetr/blob/main/util/dist.py
 def all_gather(data):
     """
@@ -158,6 +160,7 @@ def all_gather(data):
         data_list.append(obj)
 
     return data_list
+
 
 def reduce_dict(input_dict, average=True):
     """
@@ -281,6 +284,7 @@ def get_sha():
 
     def _run(command):
         return subprocess.check_output(command, cwd=cwd).decode('ascii').strip()
+
     sha = 'N/A'
     diff = "clean"
     branch = 'N/A'
@@ -298,18 +302,18 @@ def get_sha():
 
 def collate_fn(batch):
     # batch: imgs, targets
-    batch = list(zip(*batch)) 
-    batch[0] = nested_tensor_from_videos_list(batch[0], size_divisibility=32) 
+    batch = list(zip(*batch))
+    batch[0] = nested_tensor_from_videos_list(batch[0], size_divisibility=32)
     # batch[0]: samples: NestedTensor(tensor, mask)
     #           tensor: [B, T, C, H, W], mask: [B, T, H, W]
     # batch[1]: targets: list[dict]
-    return tuple(batch) 
+    return tuple(batch)
 
 
 def _max_by_axis(the_list):
     # type: (List[List[int]]) -> List[int]
     maxes = the_list[0]
-    for sublist in the_list[1:]: # (C, H, W)
+    for sublist in the_list[1:]:  # (C, H, W)
         for index, item in enumerate(sublist):
             maxes[index] = max(maxes[index], item)
     return maxes
@@ -323,33 +327,34 @@ def nested_tensor_from_tensor_list(tensor_list: List[Tensor], size_divisibility=
     # TODO make this more general
     # if image tensor is stacked as [T*3, H, W], then use split
     if split:
-        tensor_list = [tensor.split(3,dim=0) for tensor in tensor_list] 
-        tensor_list = [item for sublist in tensor_list for item in sublist] 
+        tensor_list = [tensor.split(3, dim=0) for tensor in tensor_list]
+        tensor_list = [item for sublist in tensor_list for item in sublist]
         # list[tensor], length = batch_size x time
 
-    if tensor_list[0].ndim == 3: 
+    if tensor_list[0].ndim == 3:
         # TODO make it support different-sized images
-        max_size = _max_by_axis([list(img.shape) for img in tensor_list]) 
+        max_size = _max_by_axis([list(img.shape) for img in tensor_list])
 
-        if size_divisibility > 1: # so that the mask dowmsample can be matched
+        if size_divisibility > 1:  # so that the mask dowmsample can be matched
             stride = size_divisibility
             # the last two dims are [H, W], both subject to divisibility requirement
             max_size[-2] = (max_size[-2] + (stride - 1)) // stride * stride
             max_size[-1] = (max_size[-1] + (stride - 1)) // stride * stride
 
         # min_size = tuple(min(s) for s in zip(*[img.shape for img in tensor_list]))
-        batch_shape = [len(tensor_list)] + max_size 
-        b, c, h, w = batch_shape 
+        batch_shape = [len(tensor_list)] + max_size
+        b, c, h, w = batch_shape
         dtype = tensor_list[0].dtype
         device = tensor_list[0].device
-        tensor = torch.zeros(batch_shape, dtype=dtype, device=device) 
+        tensor = torch.zeros(batch_shape, dtype=dtype, device=device)
         mask = torch.ones((b, h, w), dtype=torch.bool, device=device)
         for img, pad_img, m in zip(tensor_list, tensor, mask):
             pad_img[: img.shape[0], : img.shape[1], : img.shape[2]].copy_(img)
-            m[: img.shape[1], :img.shape[2]] = False # valid locations
+            m[: img.shape[1], :img.shape[2]] = False  # valid locations
     else:
         raise ValueError('not supported')
     return NestedTensor(tensor, mask)
+
 
 def nested_tensor_from_videos_list(videos_list: List[Tensor], size_divisibility=1):
     """
@@ -359,7 +364,7 @@ def nested_tensor_from_videos_list(videos_list: List[Tensor], size_divisibility=
     """
     max_size = _max_by_axis([list(img.shape) for img in videos_list])
 
-    if size_divisibility > 1: # so that the mask dowmsample can be matched
+    if size_divisibility > 1:  # so that the mask dowmsample can be matched
         stride = size_divisibility
         # the last two dims are [H, W], both subject to divisibility requirement
         max_size[-2] = (max_size[-2] + (stride - 1)) // stride * stride
@@ -538,7 +543,9 @@ def targets_to(targets: List[Dict[str, Any]], device):
         "original_id",
     ]
     """
-    return [{k: v.to(device)  for k, v in t.items() if k not in ["caption", "dataset_name", "original_id", "image_id"]} for t in targets]
+    return [{k: v.to(device) for k, v in t.items() if k not in ["caption", "dataset_name", "original_id", "image_id"]}
+            for t in targets]
+
 
 def get_total_grad_norm(parameters, norm_type=2):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
@@ -548,9 +555,8 @@ def get_total_grad_norm(parameters, norm_type=2):
                             norm_type)
 
 
-
 def inverse_sigmoid(x, eps=1e-5):
     x = x.clamp(min=0, max=1)
     x1 = x.clamp(min=eps)
     x2 = (1 - x).clamp(min=eps)
-    return torch.log(x1/x2)
+    return torch.log(x1 / x2)

@@ -57,7 +57,7 @@ class SetCriterion(nn.Module):
             valid_indices.append((valid_i, valid_j))
 
         idx = self._get_src_permutation_idx(valid_indices) # NOTE: use valid indices
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, valid_indices)])
+        # target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, valid_indices)])
         target_classes = torch.full(src_logits.shape[:2], self.num_classes,
                                     dtype=torch.int64, device=src_logits.device) 
         if self.num_classes == 1: # binary referred

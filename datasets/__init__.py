@@ -6,6 +6,7 @@ from .davis import build as build_davis
 from .a2d import build as build_a2d
 from .jhmdb import build as build_jhmdb
 from .refexp import build as build_refexp
+from .tnl2k import build as build_tnl2k
 from .concat_dataset import build as build_joint
 
 
@@ -28,6 +29,8 @@ def build_dataset(dataset_file: str, image_set: str, args):
         return build_a2d(image_set, args)
     if dataset_file == 'jhmdb':
         return build_jhmdb(image_set, args)
+    if dataset_file == 'tnl2k':
+        return build_tnl2k(image_set, args)
     # for pretraining
     if dataset_file == "refcoco" or dataset_file == "refcoco+" or dataset_file == "refcocog":
         return build_refexp(dataset_file, image_set, args)

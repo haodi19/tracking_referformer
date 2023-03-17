@@ -317,6 +317,12 @@ class ReferFormer(nn.Module):
         out['pred_logits'] = outputs_class[-1] # [batch_size, time, num_queries_per_frame, num_classes]
         out['pred_boxes'] = outputs_coord[-1]  # [batch_size, time, num_queries_per_frame, 4]
 
+        # 跳过segmentation！！！
+        if self.aux_loss:
+            out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord, None)
+
+        return out
+
         # Segmentation
         mask_features = self.pixel_decoder(features, text_features, pos, memory, nf=t) # [batch_size*time, c, out_h, out_w]
         mask_features = rearrange(mask_features, '(b t) c h w -> b t c h w', b=b, t=t)
@@ -348,8 +354,12 @@ class ReferFormer(nn.Module):
         # this is a workaround to make torchscript happy, as torchscript
         # doesn't support dictionary with non-homogeneous values, such
         # as a dict having both a Tensor and a list.
-        return [{"pred_logits": a, "pred_boxes": b, "pred_masks": c} 
-                for a, b, c in zip(outputs_class[:-1], outputs_coord[:-1], outputs_seg_masks[:-1])]
+        if outputs_seg_masks is None:
+            return [{"pred_logits": a, "pred_boxes": b}
+                    for a, b in zip(outputs_class[:-1], outputs_coord[:-1])]
+        else:
+            return [{"pred_logits": a, "pred_boxes": b, "pred_masks": c}
+                    for a, b, c in zip(outputs_class[:-1], outputs_coord[:-1], outputs_seg_masks[:-1])]
 
     def forward_text(self, captions, device):
         if isinstance(captions[0], str):
@@ -620,8 +630,8 @@ def build(args):
         weight_dict.update(aux_weight_dict)
 
     losses = ['labels', 'boxes']
-    if args.masks:
-        losses += ['masks']
+    # if args.masks:
+    #     losses += ['masks']
     criterion = SetCriterion(
             num_classes, 
             matcher=matcher,

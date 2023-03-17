@@ -26,7 +26,7 @@ import opts
 
 
 def main(args):
-    args.masks = True
+    args.masks = False
 
     utils.init_distributed_mode(args)
     print("git:\n  {}\n".format(utils.get_sha()))

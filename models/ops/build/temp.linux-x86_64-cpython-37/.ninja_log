@@ -1,0 +1,4 @@
+# ninja log v5
+0	3636	1673466957622888475	/home/luojingnan/ReferFormer/models/ops/build/temp.linux-x86_64-cpython-37/home/luojingnan/ReferFormer/models/ops/src/cpu/ms_deform_attn_cpu.o	8b99a41749658f26
+0	10826	1673466964802885256	/home/luojingnan/ReferFormer/models/ops/build/temp.linux-x86_64-cpython-37/home/luojingnan/ReferFormer/models/ops/src/cuda/ms_deform_attn_cuda.o	912e2caa2c88bcd5
+1	17232	1673466971210882380	/home/luojingnan/ReferFormer/models/ops/build/temp.linux-x86_64-cpython-37/home/luojingnan/ReferFormer/models/ops/src/vision.o	974771e65b3e4179

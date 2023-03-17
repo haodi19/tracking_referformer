@@ -93,33 +93,33 @@ class HungarianMatcher(nn.Module):
         """
         src_logits = outputs["pred_logits"] 
         src_boxes = outputs["pred_boxes"]   
-        src_masks = outputs["pred_masks"]   
+        # src_masks = outputs["pred_masks"]
 
-        bs, nf, nq, h, w = src_masks.shape 
+        bs, nf, nq, _ = src_boxes.shape
 
         # handle mask padding issue
-        target_masks, valid = nested_tensor_from_tensor_list([t["masks"] for t in targets], 
-                                                             size_divisibility=32,
-                                                             split=False).decompose()
-        target_masks = target_masks.to(src_masks) # [B, T, H, W]
+        # target_masks, valid = nested_tensor_from_tensor_list([t["masks"] for t in targets],
+        #                                                      size_divisibility=32,
+        #                                                      split=False).decompose()
+        # target_masks = target_masks.to(src_masks) # [B, T, H, W]
 
         # downsample ground truth masks with ratio mask_out_stride
-        start = int(self.mask_out_stride // 2)
-        im_h, im_w = target_masks.shape[-2:]
+        # start = int(self.mask_out_stride // 2)
+        # im_h, im_w = target_masks.shape[-2:]
         
-        target_masks = target_masks[:, :, start::self.mask_out_stride, start::self.mask_out_stride] 
-        assert target_masks.size(2) * self.mask_out_stride == im_h
-        assert target_masks.size(3) * self.mask_out_stride == im_w
+        # target_masks = target_masks[:, :, start::self.mask_out_stride, start::self.mask_out_stride]
+        # assert target_masks.size(2) * self.mask_out_stride == im_h
+        # assert target_masks.size(3) * self.mask_out_stride == im_w
 
         indices = []
         for i in range(bs): 
             out_prob = src_logits[i].sigmoid() 
             out_bbox = src_boxes[i]            
-            out_mask = src_masks[i]            
+            # out_mask = src_masks[i]
 
-            tgt_ids = targets[i]["labels"]     
+            # tgt_ids = targets[i]["labels"]
             tgt_bbox = targets[i]["boxes"]     
-            tgt_mask = target_masks[i]         
+            # tgt_mask = target_masks[i]
             tgt_valid = targets[i]["valid"]    
 
             # class cost
@@ -130,7 +130,7 @@ class HungarianMatcher(nn.Module):
                     continue
 
                 out_prob_split = out_prob[t]    
-                tgt_ids_split = tgt_ids[t].unsqueeze(0)     
+                # tgt_ids_split = tgt_ids[t].unsqueeze(0)
 
                 # Compute the classification cost.
                 alpha = 0.25
@@ -166,14 +166,17 @@ class HungarianMatcher(nn.Module):
 
             # mask cost
             # Compute the focal loss between masks
-            cost_mask = sigmoid_focal_coef(out_mask.transpose(0, 1), tgt_mask.unsqueeze(0))
+            # cost_mask = sigmoid_focal_coef(out_mask.transpose(0, 1), tgt_mask.unsqueeze(0))
 
             # Compute the dice loss betwen masks
-            cost_dice = -dice_coef(out_mask.transpose(0, 1), tgt_mask.unsqueeze(0))
+            # cost_dice = -dice_coef(out_mask.transpose(0, 1), tgt_mask.unsqueeze(0))
 
             # Final cost matrix
-            C = self.cost_class * cost_class + self.cost_bbox * cost_bbox + self.cost_giou * cost_giou + \
-                self.cost_mask * cost_mask + self.cost_dice * cost_dice  # [q, 1]
+            # C = self.cost_class * cost_class + self.cost_bbox * cost_bbox + self.cost_giou * cost_giou + \
+            #     self.cost_mask * cost_mask + self.cost_dice * cost_dice  # [q, 1]
+
+            C = self.cost_class * cost_class + self.cost_bbox * cost_bbox + self.cost_giou * cost_giou
+
 
             # Only has one tgt, MinCost Matcher
             _, src_ind = torch.min(C, dim=0)

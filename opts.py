@@ -107,6 +107,8 @@ def get_args_parser():
     parser.add_argument('--davis_path', type=str, default='data/ref-davis')
     parser.add_argument('--a2d_path', type=str, default='data/a2d_sentences')
     parser.add_argument('--jhmdb_path', type=str, default='data/jhmdb_sentences')
+    parser.add_argument('--tnl2k_path', type=str, default='/ssd1/luojingnan/TNL2K_train_subset/train_data')
+
     parser.add_argument('--max_skip', default=3, type=int, help="max skip frame number")
     parser.add_argument('--max_size', default=640, type=int, help="max size for the frame")
     parser.add_argument('--binary', action='store_true')
