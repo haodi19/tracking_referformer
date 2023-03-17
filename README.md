@@ -1,3 +1,17 @@
+TNL2k训练命令：
+
+```
+./scripts/dist_train_test_ytvos.sh [/path/to/output_dir] [/path/to/pretrained_weight]   --backbone video_swin_b_p4w7 --dataset_file tnl2k --num_frames 5
+```
+（文件名还是包含ytvos，没改）
+
+TNL2k路径："/ssd1/luojingnan/TNL2K_train_subset/train_data",代码里默认了该位置，可通过--tnl2k_path参数修改
+
+预训练模型路径："/home/luojingnan/ReferFormer/trained_models",目前下载了swin_large和video_swin_base两个, backbone参数对应更改
+
+
+
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Framework](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?&logo=PyTorch&logoColor=white)](https://pytorch.org/)
 
