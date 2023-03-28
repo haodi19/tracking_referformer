@@ -1,7 +1,7 @@
 TNL2k训练命令：
 
 ```
-./scripts/dist_train_test_ytvos.sh [/path/to/output_dir] [/path/to/pretrained_weight]   --backbone video_swin_b_p4w7 --dataset_file tnl2k --num_frames 5
+./scripts/dist_train_test_ytvos.sh [/path/to/output_dir] [/path/to/pretrained_weight]   --backbone swin_l_p4w7 --dataset_file tnl2k --num_frames 5
 ```
 （文件名还是包含ytvos，没改）
 
