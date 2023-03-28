@@ -146,9 +146,8 @@ class TNL2KDataset(Dataset):
                     gts = lf.readlines()
 
                 box = gts[frame_indx].rstrip().split(',')
-
                 # create the target
-                if box != '0,0,0,0':
+                if box != ['0','0','0','0']:
                     x1, y1, x2, y2 = float(box[0]), float(box[1]), float(box[2]) + float(box[0]), float(box[3]) + float(
                         box[1])
                     box = torch.tensor([x1, y1, x2, y2]).to(torch.float)
@@ -156,6 +155,7 @@ class TNL2KDataset(Dataset):
                 else:  # some frame didn't contain the instance
                     box = torch.tensor([0, 0, 0, 0]).to(torch.float)
                     valid.append(0)
+
 
                 # append
                 imgs.append(img)
